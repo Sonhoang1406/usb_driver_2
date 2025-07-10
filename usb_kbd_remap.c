@@ -5,6 +5,7 @@
 #include <linux/input.h>
 #include <linux/slab.h>
 #include <linux/version.h>
+#include <linux/utsname.h>
 
 #define DRIVER_AUTHOR "You <you@example.com>"
 #define DRIVER_DESC "USB Keyboard Remap Driver for HP USB Keyboard (CentOS 6 32-bit)"
@@ -305,7 +306,9 @@ static int __init kbd_init(void)
     printk(KERN_INFO "usb_kbd_remap: Initializing driver for CentOS 6 32-bit\n");
     printk(KERN_INFO "usb_kbd_remap: Target device %04x:%04x\n",
            VENDOR_ID, PRODUCT_ID);
-    printk(KERN_INFO "usb_kbd_remap: Kernel version: %s\n", UTS_RELEASE);
+    printk(KERN_INFO "usb_kbd_remap: Kernel version: %d.%d.%d\n",
+           LINUX_VERSION_CODE >> 16, (LINUX_VERSION_CODE >> 8) & 0xFF,
+           LINUX_VERSION_CODE & 0xFF);
 
     // Initialize remapping table
     init_remap_table();
