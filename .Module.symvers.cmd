@@ -1,0 +1,1 @@
+cmd_/home/son/driver_nam/usb_keyboard_driver/Module.symvers := sed 's/ko$$/o/' /home/son/driver_nam/usb_keyboard_driver/modules.order | scripts/mod/modpost -m -a  -o /home/son/driver_nam/usb_keyboard_driver/Module.symvers -e -i Module.symvers   -T -

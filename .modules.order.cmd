@@ -1,0 +1,1 @@
+cmd_/home/son/driver_nam/usb_keyboard_driver/modules.order := {   echo /home/son/driver_nam/usb_keyboard_driver/usb_kbd_remap.ko; :; } | awk '!x[$$0]++' - > /home/son/driver_nam/usb_keyboard_driver/modules.order

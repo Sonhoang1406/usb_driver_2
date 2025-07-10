@@ -1,0 +1,1 @@
+cmd_/home/son/driver_nam/usb_keyboard_driver/usb_kbd_remap.mod := printf '%s\n'   usb_kbd_remap.o | awk '!x[$$0]++ { print("/home/son/driver_nam/usb_keyboard_driver/"$$0) }' > /home/son/driver_nam/usb_keyboard_driver/usb_kbd_remap.mod
