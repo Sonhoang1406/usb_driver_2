@@ -1,276 +1,534 @@
-# USB Keyboard Remap Driver
+# USB Keyboard Remap Driver - CentOS 6 32-bit
 
-## Mô tả
-Driver Linux để remap phím bàn phím USB HP (VID: 0x0461, PID: 0x4e8e). Driver này cho phép thay đổi hành vi của các phím cụ thể mà không cần phần mềm bên ngoài.
+## 📋 Mô tả dự án
 
-## Key Mappings hiện tại
-- **A** → **H**
-- **B** → **C**
-- **Q** → **E**
-- **E** → **T**
-- **T** → **U**
-- **I** → **P**
-- **P** → **K**
+Driver Linux kernel module để remap phím bàn phím USB HP (VID: 0x0461, PID: 0x4e8e) trên CentOS 6 32-bit. Driver này cho phép thay đổi hành vi của các phím cụ thể mà không cần phần mềm bên ngoài.
 
-## Yêu cầu hệ thống
+## 🔧 Key Mappings hiện tại
 
-### 1. Kiểm tra kernel headers
-```bash
-# Kiểm tra kernel version
-uname -r
+| Phím gốc | Phím được map | USB HID Code |
+| -------- | ------------- | ------------ |
+| **A**    | **H**         | 0x04 → 0x0B  |
+| **B**    | **C**         | 0x05 → 0x06  |
+| **Q**    | **E**         | 0x14 → 0x08  |
+| **E**    | **T**         | 0x08 → 0x17  |
+| **T**    | **U**         | 0x17 → 0x18  |
+| **I**    | **P**         | 0x0C → 0x13  |
+| **P**    | **K**         | 0x13 → 0x0E  |
 
-# Kiểm tra kernel headers có sẵn không
-ls -la /lib/modules/$(uname -r)/build/
+_Các phím khác hoạt động bình thường_
 
-# Nếu chưa có, cài đặt kernel headers
-sudo dnf install kernel-devel kernel-headers
-# hoặc trên Ubuntu/Debian:
-# sudo apt-get install linux-headers-$(uname -r)
+## 🏗️ Cấu trúc dự án
+
 ```
-
-### 2. Kiểm tra tools cần thiết
-```bash
-# Kiểm tra gcc
-gcc --version
-
-# Kiểm tra make
-make --version
-
-# Nếu chưa có, cài đặt development tools
-sudo dnf groupinstall "Development Tools"
-# hoặc trên Ubuntu/Debian:
-# sudo apt-get install build-essential
-```
-
-### 3. Kiểm tra bàn phím USB
-```bash
-# Liệt kê các thiết bị USB
-lsusb
-
-# Tìm bàn phím HP (ID 0461:4e8e)
-lsusb | grep -i "0461:4e8e"
-```
-
-## Cấu trúc dự án
-```
-usb_keyboard_driver/
-├── usb_kbd_remap.c      # Mã nguồn driver chính
-├── Makefile             # File build
+usb_driver_2/
+├── usb_kbd_remap.c      # Mã nguồn driver chính (CentOS 6 compatible)
+├── Makefile             # Build file với 32-bit flags
 ├── build_driver.sh      # Script build driver
-├── load_driver.sh       # Script load driver
-├── unload_driver.sh     # Script unload driver
+├── load_driver.sh       # Script load driver (yêu cầu sudo)
+├── unload_driver.sh     # Script unload driver (yêu cầu sudo)
 ├── test_driver.sh       # Script test driver
 └── README.md            # Tài liệu này
 ```
 
-## Hướng dẫn sử dụng từng bước
+## 🔧 Yêu cầu hệ thống
 
-### Bước 1: Chuẩn bị
+### 1. Hệ điều hành
+
+- **CentOS 6** (32-bit)
+- Kernel 2.6.32-x (compatible)
+- Architecture: i386/i686
+
+### 2. Kiểm tra hệ thống hiện tại
+
+```bash
+# Kiểm tra OS version
+cat /etc/redhat-release
+# Kết quả mong đợi: CentOS release 6.x (Final)
+
+# Kiểm tra kernel version
+uname -r
+# Kết quả mong đợi: 2.6.32-xxx.el6.i686
+
+# Kiểm tra architecture (phải là 32-bit)
+uname -m
+# Kết quả mong đợi: i686 hoặc i386
+```
+
+### 3. Cài đặt dependencies
+
+#### 3.1 Development Tools
+
+```bash
+# Cài đặt Development Tools (bắt buộc)
+sudo yum groupinstall "Development Tools"
+
+# Kiểm tra GCC
+gcc --version
+# Kết quả mong đợi: gcc version 4.4.7 hoặc tương thích
+
+# Kiểm tra Make
+make --version
+# Kết quả mong đợi: GNU Make 3.81 hoặc tương thích
+```
+
+#### 3.2 Kernel Headers
+
+```bash
+# Cài đặt kernel headers cho kernel hiện tại
+sudo yum install kernel-devel-$(uname -r)
+
+# Nếu package không tồn tại, thử:
+sudo yum install kernel-devel
+
+# Kiểm tra kernel headers
+ls -la /lib/modules/$(uname -r)/build/
+# Phải có thư mục này với các file headers
+```
+
+#### 3.3 Kiểm tra USB keyboard
+
+```bash
+# Kiểm tra thiết bị USB
+lsusb
+
+# Tìm bàn phím HP cụ thể
+lsusb | grep "0461:4e8e"
+# Kết quả mong đợi: Bus xxx Device xxx: ID 0461:4e8e xxx
+```
+
+## 🚀 Hướng dẫn sử dụng từng bước
+
+### Bước 1: Chuẩn bị môi trường
+
 ```bash
 # Di chuyển vào thư mục dự án
-cd /home/son/driver_nam/usb_keyboard_driver
+cd /path/to/usb_driver_2
 
 # Kiểm tra các file
 ls -la
 
 # Cấp quyền thực thi cho scripts
 chmod +x *.sh
+
+# Kiểm tra dependencies
+make check-deps
 ```
 
 ### Bước 2: Build Driver
+
 ```bash
-# Cách 1: Dùng script (khuyến nghị)
+# Build driver (khuyến nghị)
 ./build_driver.sh
 
-# Cách 2: Build thủ công
+# Hoặc build thủ công
 make clean
 make
+
+# Build với debug mode (nếu cần troubleshoot)
+make debug
 ```
 
 **Kết quả mong đợi:**
-- Driver build thành công
-- Tạo file `usb_kbd_remap.ko` (khoảng 492KB)
-- Không có lỗi compile
+
+```
+========================================
+Build completed successfully!
+========================================
+Driver file details:
+-rw-r--r-- 1 user user 15K Oct XX XX:XX usb_kbd_remap.ko
+
+File info:
+usb_kbd_remap.ko: ELF 32-bit LSB relocatable, Intel 80386, version 1
+
+Module info:
+filename:       usb_kbd_remap.ko
+version:        1.0-centos6
+description:    USB Keyboard Remap Driver for HP USB Keyboard (CentOS 6 32-bit)
+author:         You <you@example.com>
+license:        GPL
+```
 
 ### Bước 3: Load Driver
-```bash
-# Load driver
-sudo ./load_driver.sh
 
-# Kiểm tra driver đã load thành công
-lsmod | grep usb_kbd_remap
+```bash
+# Load driver (yêu cầu sudo)
+sudo ./load_driver.sh
 ```
 
 **Kết quả mong đợi:**
+
 ```
-Loading USB Keyboard Remap Driver...
+========================================
 Driver loaded successfully!
-[ xxxx.xxxxxx] usb_kbd_remap: Probing device HP USB Keyboard VID:0461 PID:4e8e
-[ xxxx.xxxxxx] usb_kbd_remap: Attaching to input device HP USB Keyboard
-[ xxxx.xxxxxx] usb_kbd_remap: Event handler attached successfully
+========================================
+Driver status:
+usb_kbd_remap          XXXX  0
+
+Recent kernel messages:
+usb_kbd_remap: Initializing driver for CentOS 6 32-bit
+usb_kbd_remap: Target device 0461:4e8e
+usb_kbd_remap: Key remapping table initialized for CentOS 6 32-bit
+usb_kbd_remap: Driver registered successfully
 ```
 
 ### Bước 4: Test Driver
+
 ```bash
 # Chạy test script
 ./test_driver.sh
 ```
 
-**Kết quả mong đợi:**
-- Driver được load thành công
-- Hiển thị các key mappings
-- Logs driver xuất hiện trong kernel logs
+**Tính năng của test script:**
+
+- Kiểm tra system info
+- Phát hiện USB keyboard
+- Kiểm tra driver status
+- Hiển thị key mappings
+- Hướng dẫn test manual
+- Monitoring logs real-time
 
 ### Bước 5: Test thực tế
 
-#### 5.1 Mở Text Editor
+#### 5.1 Test cơ bản
+
 ```bash
-# Mở gedit
+# Mở text editor
+nano test_output.txt
+
+# Hoặc GUI editor (nếu có)
 gedit &
-
-# Hoặc nano
-nano test.txt
-
-# Hoặc bất kỳ text editor nào khác
 ```
 
 #### 5.2 Test từng phím
-1. **Test phím A**: Bấm `A` → Kết quả: `H`
-2. **Test phím B**: Bấm `B` → Kết quả: `C`
-3. **Test phím Q**: Bấm `Q` → Kết quả: `E`
-4. **Test phím E**: Bấm `E` → Kết quả: `T`
-5. **Test phím T**: Bấm `T` → Kết quả: `U`
-6. **Test phím I**: Bấm `I` → Kết quả: `P`
-7. **Test phím P**: Bấm `P` → Kết quả: `K`
 
-#### 5.3 Kiểm tra logs
+1. **Test A → H**: Bấm `A`, kết quả: `H`
+2. **Test B → C**: Bấm `B`, kết quả: `C`
+3. **Test Q → E**: Bấm `Q`, kết quả: `E`
+4. **Test E → T**: Bấm `E`, kết quả: `T`
+5. **Test T → U**: Bấm `T`, kết quả: `U`
+6. **Test I → P**: Bấm `I`, kết quả: `P`
+7. **Test P → K**: Bấm `P`, kết quả: `K`
+
+#### 5.3 Test phím bình thường
+
+- `X`, `Y`, `Z` → Hoạt động bình thường
+- `1`, `2`, `3` → Hoạt động bình thường
+- `Shift+A`, `Ctrl+A` → Test tổ hợp phím
+
+#### 5.4 Monitor logs
+
 ```bash
 # Xem logs realtime
 sudo dmesg -w | grep usb_kbd_remap
 
-# Hoặc xem logs gần đây
-dmesg | grep usb_kbd_remap | tail -10
+# Xem logs gần đây
+dmesg | grep usb_kbd_remap | tail -n 10
 ```
 
-## Troubleshooting
-
-### Lỗi Build
-```bash
-# Nếu lỗi "No such file or directory" cho kernel headers
-sudo dnf install kernel-devel-$(uname -r)
-
-# Nếu lỗi missing tools
-sudo dnf groupinstall "Development Tools"
-```
-
-### Lỗi Load Driver
-```bash
-# Nếu lỗi "Operation not permitted"
-# Kiểm tra SELinux
-sudo setenforce 0  # Tạm thời disable SELinux
-
-# Nếu lỗi "Invalid module format"
-# Rebuild driver với kernel hiện tại
-make clean && make
-```
-
-### Driver không hoạt động
-```bash
-# Kiểm tra thiết bị USB
-lsusb | grep -i "0461:4e8e"
-
-# Kiểm tra driver đã load
-lsmod | grep usb_kbd_remap
-
-# Kiểm tra logs
-dmesg | grep usb_kbd_remap
-```
-
-### Không thấy key mapping
-```bash
-# Kiểm tra device đang sử dụng
-cat /proc/bus/input/devices | grep -A 5 -B 5 "HP USB Keyboard"
-
-# Restart driver
-sudo ./unload_driver.sh
-sudo ./load_driver.sh
-```
-
-## Quản lý Driver
+## 🔧 Quản lý Driver
 
 ### Unload Driver
+
 ```bash
 # Unload driver
 sudo ./unload_driver.sh
-
-# Hoặc thủ công
-sudo rmmod usb_kbd_remap
 ```
 
-### Kiểm tra trạng thái
-```bash
-# Kiểm tra driver đang load
-lsmod | grep usb_kbd_remap
+### Restart Driver
 
-# Xem thông tin driver
+```bash
+# Restart driver (unload + load)
+sudo ./unload_driver.sh && sudo ./load_driver.sh
+```
+
+### Auto-load at boot (optional)
+
+```bash
+# Copy driver to modules directory
+sudo make install
+
+# Add to modules list
+echo "usb_kbd_remap" | sudo tee -a /etc/modules-load.d/usb_kbd_remap.conf
+
+# Rebuild module dependencies
+sudo depmod -a
+```
+
+## 🐛 Troubleshooting
+
+### 1. Build Errors
+
+#### Error: "No such file or directory" cho kernel headers
+
+```bash
+# Cài đặt kernel headers cho version hiện tại
+sudo yum install kernel-devel-$(uname -r)
+
+# Nếu không có package cụ thể, cài version mới nhất
+sudo yum install kernel-devel
+
+# Update kernel (nếu cần)
+sudo yum update kernel
+# Sau đó reboot và rebuild driver
+```
+
+#### Error: "gcc not found"
+
+```bash
+# Cài đặt Development Tools
+sudo yum groupinstall "Development Tools"
+
+# Hoặc cài đặt riêng lẻ
+sudo yum install gcc make
+```
+
+#### Error: Architecture mismatch
+
+```bash
+# Kiểm tra architecture
+uname -m
+# Phải là i686 hoặc i386 cho 32-bit
+
+# Nếu là x86_64, cần chuyển sang CentOS 6 32-bit
+```
+
+### 2. Loading Errors
+
+#### Error: "Operation not permitted"
+
+```bash
+# Disable SELinux tạm thời
+sudo setenforce 0
+
+# Permanent disable (không khuyến nghị)
+sudo sed -i 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+```
+
+#### Error: "Invalid module format"
+
+```bash
+# Module không match kernel version
+# Rebuild driver
+make clean && make
+```
+
+#### Error: "Unknown symbol"
+
+```bash
+# Missing dependencies
+# Kiểm tra module dependencies
 modinfo usb_kbd_remap.ko
 
-# Xem logs driver
-dmesg | grep usb_kbd_remap
+# Load required modules trước
+modprobe hid
+modprobe usbhid
 ```
 
-### Rebuild sau khi sửa code
+### 3. Driver Functionality Issues
+
+#### Remapping không hoạt động
+
 ```bash
-# Unload driver cũ
-sudo ./unload_driver.sh
+# 1. Kiểm tra USB keyboard đúng
+lsusb | grep "0461:4e8e"
 
-# Rebuild
-make clean
-make
+# 2. Kiểm tra driver loaded
+lsmod | grep usb_kbd_remap
 
-# Load driver mới
-sudo ./load_driver.sh
+# 3. Restart driver
+sudo ./unload_driver.sh && sudo ./load_driver.sh
+
+# 4. Kiểm tra logs
+dmesg | grep usb_kbd_remap
+
+# 5. Test với keyboard khác (nếu có)
 ```
 
-## Tùy chỉnh Key Mappings
+#### Một số phím không được remap
 
-### Thay đổi mappings trong code
-Sửa file `usb_kbd_remap.c`:
-```c
-// Thay đổi các biến module parameters
-static unsigned int map_from_key = KEY_A;    // Phím nguồn
-static unsigned int map_to_key = KEY_H;      // Phím đích
+```bash
+# Kiểm tra HID report format
+# Enable debug mode
+make clean && make debug
+sudo ./unload_driver.sh && sudo ./load_driver.sh
+
+# Monitor detailed logs
+sudo dmesg -w | grep usb_kbd_remap
 ```
 
-### Thay đổi USB HID mappings
-Sửa trong hàm `kbd_raw_event()`:
+### 4. System Issues
+
+#### CentOS 6 End of Life
+
+```bash
+# Update repositories to vault
+sudo sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
+sudo sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
+
+# Update system
+sudo yum clean all
+sudo yum update
+```
+
+#### Performance issues
+
+```bash
+# Check system resources
+free -m
+df -h
+
+# Check for conflicts
+lsmod | grep -E "(hid|usb|keyboard)"
+```
+
+## 📚 Advanced Usage
+
+### Custom Key Mappings
+
+Để thay đổi key mappings, edit file `usb_kbd_remap.c`:
+
 ```c
-// Thêm mapping mới
-else if (key_code == 0x04) {  // 'A' key in USB HID
-    printk(KERN_DEBUG "usb_kbd_remap: Remapping A(0x04) to H(0x0B)\n");
-    data[i] = 0x0B;  // 'H' key in USB HID
+// Tìm section raw_event handler
+// Thay đổi các mapping:
+if (key_code == 0x04) {  // A key
+    data[i] = 0x0B;      // Map to H
 }
 ```
 
-## Tài liệu tham khảo
+### Debug Mode
 
-### USB HID Scan Codes
-- A = 0x04, B = 0x05, C = 0x06, ..., Z = 0x1D
-- Q = 0x14, E = 0x08, T = 0x17, U = 0x18
-- I = 0x0C, P = 0x13, K = 0x0E
+```bash
+# Build với debug
+make debug
 
-### Linux Input Event Codes
-- KEY_A = 30, KEY_B = 48, KEY_C = 46
-- KEY_Q = 16, KEY_E = 18, KEY_T = 20
-- KEY_I = 23, KEY_P = 25, KEY_K = 37
+# Load và monitor
+sudo ./load_driver.sh
+sudo dmesg -w | grep usb_kbd_remap
+```
 
-## Liên hệ
-- Author: You <you@example.com>
-- Version: 1.0
-- License: GPL
+### Multiple Keyboards
 
-## Lưu ý quan trọng
-- Driver chỉ hoạt động với bàn phím HP USB (VID: 0x0461, PID: 0x4e8e)
-- Cần quyền root để load/unload driver
-- Backup dữ liệu quan trọng trước khi test
-- Disable SELinux nếu gặp lỗi permission
+Driver chỉ hỗ trợ keyboard cụ thể (VID:0461 PID:4e8e). Để hỗ trợ keyboard khác, edit:
+
+```c
+#define VENDOR_ID 0x0461    // Thay đổi VID
+#define PRODUCT_ID 0x4e8e   // Thay đổi PID
+```
+
+## 📋 Useful Commands
+
+### System Information
+
+```bash
+# OS info
+cat /etc/redhat-release
+uname -a
+
+# Hardware info
+lscpu
+lspci | grep -i usb
+lsusb -v
+
+# Module info
+lsmod | grep usb
+modinfo usb_kbd_remap.ko
+```
+
+### Driver Management
+
+```bash
+# Manual load/unload
+sudo insmod usb_kbd_remap.ko
+sudo rmmod usb_kbd_remap
+
+# Check dependencies
+modprobe --show-depends usb_kbd_remap.ko
+
+# Force unload
+sudo rmmod -f usb_kbd_remap
+```
+
+### Monitoring
+
+```bash
+# Real-time logs
+sudo dmesg -w | grep usb_kbd_remap
+
+# USB events
+sudo udevadm monitor --kernel --subsystem-match=usb
+
+# Input events
+sudo evtest  # Chọn keyboard device
+```
+
+## 🔒 Security Notes
+
+1. **SELinux**: Driver có thể bị SELinux block. Disable tạm thời khi test.
+2. **Root privileges**: Scripts cần sudo để load/unload kernel modules.
+3. **Kernel modules**: Chỉ load modules từ sources tin cậy.
+4. **Backup**: Backup system trước khi cài đặt driver.
+
+## 📞 Support
+
+### Log Collection
+
+Khi cần support, thu thập thông tin sau:
+
+```bash
+# System info
+uname -a > debug_info.txt
+cat /etc/redhat-release >> debug_info.txt
+lscpu >> debug_info.txt
+
+# USB info
+lsusb -v >> debug_info.txt
+
+# Driver info
+lsmod | grep usb >> debug_info.txt
+dmesg | grep usb_kbd_remap >> debug_info.txt
+
+# Build info
+make info >> debug_info.txt
+```
+
+### Common Issues
+
+1. **Build fails**: Kiểm tra kernel-devel package
+2. **Load fails**: Kiểm tra SELinux và permissions
+3. **No remapping**: Kiểm tra USB device VID:PID
+4. **Kernel panic**: Unload driver và kiểm tra logs
+
+## 📈 Version History
+
+- **v1.0-centos6**: Initial CentOS 6 32-bit compatible version
+  - Support for kernel 2.6.32
+  - 32-bit architecture optimization
+  - Enhanced error handling
+  - Comprehensive documentation
+
+---
+
+## 🎯 Quick Start Summary
+
+```bash
+# 1. Install dependencies
+sudo yum groupinstall "Development Tools"
+sudo yum install kernel-devel-$(uname -r)
+
+# 2. Build driver
+./build_driver.sh
+
+# 3. Load driver
+sudo ./load_driver.sh
+
+# 4. Test driver
+./test_driver.sh
+
+# 5. Open text editor and test key mappings
+nano test.txt
+# Type: A B Q E T I P
+# Should output: H C E T U P K
+```
+
+**🎉 Chúc bạn sử dụng driver thành công trên CentOS 6 32-bit!**
